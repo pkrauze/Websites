@@ -15,4 +15,8 @@
   <ItemGroup>
     <Compile Remove="Migrations\20180102133255_Initial.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Views\Account\" />
+    <Folder Include="Models\AccountViewModels\" />
+  </ItemGroup>
 </Project>
