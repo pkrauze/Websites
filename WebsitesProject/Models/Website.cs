@@ -8,8 +8,10 @@ namespace WebsitesProject.Models
         public int ID { get; set; }
         public string Domain { get; set; }
         public string Description { get; set; }
-        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+        [DataType(DataType.Date)]
         public DateTime CreatedAt { get; set; }
-        public decimal Price { get; set; }
+        public int OrderID { get; set; }
+
+        public virtual Order Order { get; set; }
     }
 }

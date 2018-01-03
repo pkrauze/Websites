@@ -9,22 +9,22 @@ using WebsitesProject.Models;
 
 namespace WebsitesProject.Controllers
 {
-    public class WebsitesController : Controller
+    public class OrdersController : Controller
     {
         private readonly WebsitesContext _context;
 
-        public WebsitesController(WebsitesContext context)
+        public OrdersController(WebsitesContext context)
         {
             _context = context;
         }
 
-        // GET: Websites
+        // GET: Orders
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Website.ToListAsync());
+            return View(await _context.Order.ToListAsync());
         }
 
-        // GET: Websites/Details/5
+        // GET: Orders/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -32,42 +32,39 @@ namespace WebsitesProject.Controllers
                 return NotFound();
             }
 
-            var website = await _context.Website
+            var order = await _context.Order
                 .SingleOrDefaultAsync(m => m.ID == id);
-            if (website == null)
+            if (order == null)
             {
                 return NotFound();
             }
 
-            return View(website);
+            return View(order);
         }
 
-        // GET: Websites/Create
+        // GET: Orders/Create
         public IActionResult Create()
         {
-            ViewBag.OrderID = new SelectList(_context.Order, "ID", "Description");
             return View();
         }
 
-        // POST: Websites/Create
+        // POST: Orders/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Domain,Description,CreatedAt, OrderID")] Website website)
+        public async Task<IActionResult> Create([Bind("ID,Price,Description")] Order order)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(website);
+                _context.Add(order);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-
-            ViewBag.OrderID = new SelectList(_context.Order, "ID", "Description", website.OrderID);
-            return View(website);
+            return View(order);
         }
 
-        // GET: Websites/Edit/5
+        // GET: Orders/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -75,23 +72,22 @@ namespace WebsitesProject.Controllers
                 return NotFound();
             }
 
-            var website = await _context.Website.SingleOrDefaultAsync(m => m.ID == id);
-            if (website == null)
+            var order = await _context.Order.SingleOrDefaultAsync(m => m.ID == id);
+            if (order == null)
             {
                 return NotFound();
             }
-            ViewBag.OrderID = new SelectList(_context.Order, "ID", "Description");
-            return View(website);
+            return View(order);
         }
 
-        // POST: Websites/Edit/5
+        // POST: Orders/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Domain,Description,CreatedAt, OrderID")] Website website)
+        public async Task<IActionResult> Edit(int id, [Bind("ID,Price,Description")] Order order)
         {
-            if (id != website.ID)
+            if (id != order.ID)
             {
                 return NotFound();
             }
@@ -100,12 +96,12 @@ namespace WebsitesProject.Controllers
             {
                 try
                 {
-                    _context.Update(website);
+                    _context.Update(order);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!WebsiteExists(website.ID))
+                    if (!OrderExists(order.ID))
                     {
                         return NotFound();
                     }
@@ -116,10 +112,10 @@ namespace WebsitesProject.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(website);
+            return View(order);
         }
 
-        // GET: Websites/Delete/5
+        // GET: Orders/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -127,30 +123,30 @@ namespace WebsitesProject.Controllers
                 return NotFound();
             }
 
-            var website = await _context.Website
+            var order = await _context.Order
                 .SingleOrDefaultAsync(m => m.ID == id);
-            if (website == null)
+            if (order == null)
             {
                 return NotFound();
             }
 
-            return View(website);
+            return View(order);
         }
 
-        // POST: Websites/Delete/5
+        // POST: Orders/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var website = await _context.Website.SingleOrDefaultAsync(m => m.ID == id);
-            _context.Website.Remove(website);
+            var order = await _context.Order.SingleOrDefaultAsync(m => m.ID == id);
+            _context.Order.Remove(order);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool WebsiteExists(int id)
+        private bool OrderExists(int id)
         {
-            return _context.Website.Any(e => e.ID == id);
+            return _context.Order.Any(e => e.ID == id);
         }
     }
 }

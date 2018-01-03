@@ -1,5 +1,4 @@
-@model IEnumerable<WebsitesProject.Models.Website>
-
+@model IEnumerable<WebsitesProject.Models.Order>
 <p>
     <a asp-action="Create">Create New</a>
 </p>
@@ -7,16 +6,10 @@
     <thead>
         <tr>
                 <th>
-                    @Html.DisplayNameFor(model => model.Domain)
+                    @Html.DisplayNameFor(model => model.Price)
                 </th>
                 <th>
                     @Html.DisplayNameFor(model => model.Description)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.CreatedAt)
-                </th>
-                <th>
-                    @Html.DisplayNameFor(model => model.OrderID)
                 </th>
             <th></th>
         </tr>
@@ -25,16 +18,10 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Domain)
+                @Html.DisplayFor(modelItem => item.Price)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.OrderID)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |

@@ -10,9 +10,10 @@ using System;
 namespace WebsitesProject.Migrations
 {
     [DbContext(typeof(WebsitesContext))]
-    partial class WebsitesContextModelSnapshot : ModelSnapshot
+    [Migration("20180103182212_AddOrderIDToWebsite")]
+    partial class AddOrderIDToWebsite
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

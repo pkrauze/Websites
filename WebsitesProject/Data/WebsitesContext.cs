@@ -13,4 +13,5 @@ using WebsitesProject.Models;
         }
 
         public DbSet<WebsitesProject.Models.Website> Website { get; set; }
+        public DbSet<WebsitesProject.Models.Order> Order { get; set; }
     }
