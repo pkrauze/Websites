@@ -36,6 +36,7 @@
                     <li><a asp-area="" asp-controller="Websites" asp-action="Index">Websites</a></li>
                     <li><a asp-area="" asp-controller="Orders" asp-action="Index">Orders</a></li>
                 </ul>
+                @await Html.PartialAsync("_LoginNav")
             </div>
         </div>
     </nav>
