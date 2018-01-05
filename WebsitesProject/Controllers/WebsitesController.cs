@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -12,13 +14,26 @@ namespace WebsitesProject.Controllers
     public class WebsitesController : Controller
     {
         private readonly WebsitesContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public WebsitesController(WebsitesContext context)
+
+        public WebsitesController(WebsitesContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
+        }
+
+        private Task<User> GetCurrentUserAsync() => _userManager.GetUserAsync(HttpContext.User);
+
+        [HttpGet]
+        public async Task<string> GetCurrentUserId()
+        {
+            User usr = await GetCurrentUserAsync();
+            return usr?.Id;
         }
 
         // GET: Websites
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             return View(await _context.Website.ToListAsync());
@@ -42,6 +57,13 @@ namespace WebsitesProject.Controllers
             return View(website);
         }
 
+        // GET: Websites
+        public async Task<IActionResult> UserWebsites()
+        {
+            var currentUserId = await GetCurrentUserId();
+            return View(await _context.Website.Where(w => w.UserId == currentUserId).ToListAsync());
+        }
+
         // GET: Websites/Create
         public IActionResult Create()
         {
@@ -54,16 +76,24 @@ namespace WebsitesProject.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Domain,Description,CreatedAt, OrderID")] Website website)
+        public async Task<IActionResult> Create([Bind("ID,Domain,Description,CreatedAt,UserId")] Website website)
         {
-            if (ModelState.IsValid)
+            var currentUserId = await GetCurrentUserId();
+            if (ModelState.IsValid && currentUserId != null)
             {
+                website.UserId = currentUserId;
                 _context.Add(website);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                if (User.IsInRole("Admin"))
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    return RedirectToAction(nameof(UserWebsites));
+                }
             }
 
-            ViewBag.OrderID = new SelectList(_context.Order, "ID", "Description", website.OrderID);
             return View(website);
         }
 
@@ -80,7 +110,6 @@ namespace WebsitesProject.Controllers
             {
                 return NotFound();
             }
-            ViewBag.OrderID = new SelectList(_context.Order, "ID", "Description");
             return View(website);
         }
 
@@ -89,7 +118,7 @@ namespace WebsitesProject.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Domain,Description,CreatedAt, OrderID")] Website website)
+        public async Task<IActionResult> Edit(int id, [Bind("ID,Domain,Description,CreatedAt")] Website website)
         {
             if (id != website.ID)
             {

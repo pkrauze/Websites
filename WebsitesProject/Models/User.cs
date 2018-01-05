@@ -12,5 +12,7 @@ namespace WebsitesProject.Models
 
         public virtual ICollection<Website> Websites { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
+
+        public virtual IdentityRole Role { get; set; }
     }
 }

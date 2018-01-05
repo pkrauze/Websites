@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace WebsitesProject.Models
@@ -13,8 +12,11 @@ namespace WebsitesProject.Models
 
         public string Description { get; set; }
 
-        public virtual ICollection<Website> Websites { get; set; }
+        public string Status { get; set; } 
+        public int WebsiteID { get; set; }
 
+
+        public virtual Website Website { get; set; }
         public virtual User User { get; set; }
     }
 }

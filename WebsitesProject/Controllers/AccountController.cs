@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WebsitesProject.Controllers;
@@ -20,18 +21,24 @@ namespace YachtShop.Controllers
     [Route("[controller]/[action]")]
     public class AccountController : Controller
     {
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly ILogger _logger;
+        private readonly WebsitesContext _context;
 
         public AccountController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger,
+            RoleManager<IdentityRole> roleManager,
+            WebsitesContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
+            _roleManager = roleManager;
+            _context = context;
         }
 
         [TempData]
@@ -103,7 +110,7 @@ namespace YachtShop.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = new User { UserName = model.Email, Email = model.Email };
+                var user = new User { UserName = model.Email, Email = model.Email, Role = await _roleManager.FindByNameAsync("User") };
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
@@ -135,6 +142,7 @@ namespace YachtShop.Controllers
             return View();
         }
 
+
         #region Helpers
 
         private void AddErrors(IdentityResult result)
@@ -156,6 +164,7 @@ namespace YachtShop.Controllers
                 return RedirectToAction(nameof(HomeController.Index), "Home");
             }
         }
+
 
         #endregion
     }

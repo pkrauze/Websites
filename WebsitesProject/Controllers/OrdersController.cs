@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using WebsitesProject.Models;
 
 namespace WebsitesProject.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class OrdersController : Controller
     {
         private readonly WebsitesContext _context;
@@ -45,6 +47,7 @@ namespace WebsitesProject.Controllers
         // GET: Orders/Create
         public IActionResult Create()
         {
+            ViewBag.WebsiteID = new SelectList(_context.Website, "ID", "Domain");
             return View();
         }
 
@@ -53,7 +56,7 @@ namespace WebsitesProject.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Price,Description")] Order order)
+        public async Task<IActionResult> Create([Bind("ID,Price,Description,Status, WebsiteID")] Order order)
         {
             if (ModelState.IsValid)
             {
@@ -77,6 +80,7 @@ namespace WebsitesProject.Controllers
             {
                 return NotFound();
             }
+            ViewBag.WebsiteID = new SelectList(_context.Website, "ID", "Domain");
             return View(order);
         }
 
@@ -85,7 +89,7 @@ namespace WebsitesProject.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Price,Description")] Order order)
+        public async Task<IActionResult> Edit(int id, [Bind("ID,Price,Description,Status,WebsiteID")] Order order)
         {
             if (id != order.ID)
             {

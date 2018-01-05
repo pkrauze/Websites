@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using WebsitesProject.Models;
+using WebsitesProject.Data;
 
 namespace WebsitesProject
 {
@@ -30,6 +31,8 @@ namespace WebsitesProject
             services.AddIdentity<User, IdentityRole>()
                     .AddEntityFrameworkStores<WebsitesContext>()
                     .AddDefaultTokenProviders();
+
+            services.AddScoped<ApplicationDbInitializer>();
 
             services.Configure<IdentityOptions>(options =>
             {
@@ -65,7 +68,7 @@ namespace WebsitesProject
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ApplicationDbInitializer dbInitalizer)
         {
             if (env.IsDevelopment())
             {
@@ -79,13 +82,14 @@ namespace WebsitesProject
             app.UseStaticFiles();
             app.UseAuthentication();
 
-
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+
+            dbInitalizer.Seed();
         }
     }
 }

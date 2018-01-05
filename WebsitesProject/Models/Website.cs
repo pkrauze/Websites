@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace WebsitesProject.Models
@@ -14,9 +15,10 @@ namespace WebsitesProject.Models
         public string Description { get; set; }
         [DataType(DataType.Date)]
         public DateTime CreatedAt { get; set; }
-        public int OrderID { get; set; }
 
-        public virtual Order Order { get; set; }
+        public virtual ICollection<Order> Orders { get; set; }
+
+        public string UserId { get; set; }
         public virtual User User { get; set; }
     }
 }

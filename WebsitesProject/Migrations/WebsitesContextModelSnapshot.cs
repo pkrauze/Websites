@@ -134,11 +134,17 @@ namespace WebsitesProject.Migrations
 
                     b.Property<decimal>("Price");
 
+                    b.Property<string>("Status");
+
                     b.Property<string>("UserId");
+
+                    b.Property<int?>("WebsiteID");
 
                     b.HasKey("ID");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("WebsiteID");
 
                     b.ToTable("Order");
                 });
@@ -178,6 +184,8 @@ namespace WebsitesProject.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed");
 
+                    b.Property<string>("RoleId");
+
                     b.Property<string>("SecurityStamp");
 
                     b.Property<bool>("TwoFactorEnabled");
@@ -194,6 +202,8 @@ namespace WebsitesProject.Migrations
                         .IsUnique()
                         .HasName("UserNameIndex");
 
+                    b.HasIndex("RoleId");
+
                     b.ToTable("AspNetUsers");
                 });
 
@@ -209,13 +219,9 @@ namespace WebsitesProject.Migrations
                     b.Property<string>("Domain")
                         .IsRequired();
 
-                    b.Property<int>("OrderID");
-
                     b.Property<string>("UserId");
 
                     b.HasKey("ID");
-
-                    b.HasIndex("OrderID");
 
                     b.HasIndex("UserId");
 
@@ -272,15 +278,21 @@ namespace WebsitesProject.Migrations
                     b.HasOne("WebsitesProject.Models.User", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId");
+
+                    b.HasOne("WebsitesProject.Models.Website", "Website")
+                        .WithMany("Orders")
+                        .HasForeignKey("WebsiteID");
+                });
+
+            modelBuilder.Entity("WebsitesProject.Models.User", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId");
                 });
 
             modelBuilder.Entity("WebsitesProject.Models.Website", b =>
                 {
-                    b.HasOne("WebsitesProject.Models.Order", "Order")
-                        .WithMany("Websites")
-                        .HasForeignKey("OrderID")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("WebsitesProject.Models.User", "User")
                         .WithMany("Websites")
                         .HasForeignKey("UserId");

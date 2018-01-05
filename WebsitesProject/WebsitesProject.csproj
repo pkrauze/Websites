@@ -14,9 +14,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Migrations\20180102133255_Initial.cs" />
+    <Compile Remove="Controllers\ApplicationRoleController.cs" />
+    <Compile Remove="Controllers\AccountRoleController.cs" />
+    <Compile Remove="Models\BootstrapModel.cs" />
+    <Compile Remove="Authorization\WebsiteOwner.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Views\Account\" />
     <Folder Include="Models\AccountViewModels\" />
+    <Folder Include="Models\ApplicationRoleViewModels\" />
+    <Folder Include="Authorization\" />
   </ItemGroup>
 </Project>
