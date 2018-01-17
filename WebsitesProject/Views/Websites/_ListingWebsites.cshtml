@@ -1,4 +1,4 @@
-﻿@model IEnumerable<WebsitesProject.Models.Website>
+﻿@model IEnumerable<WebsitesProject.Models.WebsiteViewModels.WebsiteViewModel>
 
 <p>
     <a asp-action="Create">Create New</a>
@@ -30,9 +30,9 @@
                 @Html.DisplayFor(modelItem => item.CreatedAt)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+                <a asp-action="Edit" asp-route-id="@item.WebsiteId">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.WebsiteId">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.WebsiteId">Delete</a>
             </td>
         </tr>
 }

@@ -139,7 +139,7 @@ namespace YachtShop.Controllers
         [HttpGet]
         public IActionResult AccessDenied()
         {
-            return View();
+            return View("AccessDenied");
         }
 
 

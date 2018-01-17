@@ -1,12 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc;
 using WebsitesProject.Helpers.Validators;
 
-namespace WebsitesProject.Models
+namespace WebsitesProject.Models.WebsiteViewModels
 {
-    public class Website
+    public class WebsiteViewModel
     {
         public int WebsiteId { get; set; }
 
@@ -14,11 +13,9 @@ namespace WebsitesProject.Models
 
         public string Description { get; set; }
 
-        [Remote(action: "VerifyDomain", controller: "Websites", AdditionalFields = nameof(Domain))]
+        [Display(Name = "Created At")]
         public DateTime CreatedAt { get; set; }
 
         public virtual ICollection<Order> Orders { get; set; }
-
-        public virtual User User { get; set; }
     }
 }

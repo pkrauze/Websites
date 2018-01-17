@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebsitesProject.Models;
+using WebsitesProject.Models.OrderViewModels;
 
 namespace WebsitesProject.Controllers
 {
@@ -14,41 +16,51 @@ namespace WebsitesProject.Controllers
     public class OrdersController : Controller
     {
         private readonly WebsitesContext _context;
+        private readonly IMapper _mapper;
 
-        public OrdersController(WebsitesContext context)
+        public OrdersController(WebsitesContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET: Orders
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Order.ToListAsync());
+            var orders = await _context.Orders
+                                 .Include(u => u.Website)
+                                 .Select(m => _mapper.Map<OrderViewModel>(m))
+                                 .ToListAsync();
+            return View(orders);
         }
 
         // GET: Orders/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
+            if(id == null)
             {
-                return NotFound();
+                return View("NotFound");
             }
-
-            var order = await _context.Order
-                .SingleOrDefaultAsync(m => m.ID == id);
+            var order = await _context.Orders
+                .Include(u => u.Website)
+                .SingleOrDefaultAsync(m => m.OrderId == id);
             if (order == null)
             {
-                return NotFound();
+                return View("NotFound");
             }
 
-            return View(order);
+            var viewModel = _mapper.Map<DetailsOrderViewModel>(order);
+            return View(viewModel);
         }
 
         // GET: Orders/Create
         public IActionResult Create()
         {
-            ViewBag.WebsiteID = new SelectList(_context.Website, "ID", "Domain");
-            return View();
+            var viewModel = new CreateOrderViewModel
+            {
+                Websites = _context.Websites
+            };
+            return View(viewModel);
         }
 
         // POST: Orders/Create
@@ -56,15 +68,25 @@ namespace WebsitesProject.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Price,Description,Status, WebsiteID")] Order order)
+        public async Task<IActionResult> Create(CreateOrderViewModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Add(order);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                model.Websites = _context.Websites;
+                return View(model);
             }
-            return View(order);
+
+            var order = new Order
+            {
+                Price = model.Price,
+                Description = model.Description,
+                Status = model.Status,
+                Website = await _context.Websites.SingleOrDefaultAsync(c => c.WebsiteId == model.WebsiteId)
+            };
+
+            _context.Add(order);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Orders/Edit/5
@@ -72,16 +94,17 @@ namespace WebsitesProject.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                return View("NotFound");
             }
 
-            var order = await _context.Order.SingleOrDefaultAsync(m => m.ID == id);
-            if (order == null)
+            var order = await _context.Orders.SingleOrDefaultAsync(m => m.OrderId == id);
+            if (order == null || id == null)
             {
-                return NotFound();
+                return View("NotFound");
             }
-            ViewBag.WebsiteID = new SelectList(_context.Website, "ID", "Domain");
-            return View(order);
+            var viewModel = _mapper.Map<EditOrderViewModel>(order);
+            viewModel.Websites = _context.Websites;
+            return View(viewModel);
         }
 
         // POST: Orders/Edit/5
@@ -89,34 +112,37 @@ namespace WebsitesProject.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Price,Description,Status,WebsiteID")] Order order)
+        public async Task<IActionResult> Edit(EditOrderViewModel model)
         {
-            if (id != order.ID)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                return View(model);
             }
 
-            if (ModelState.IsValid)
+            try
             {
-                try
-                {
-                    _context.Update(order);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!OrderExists(order.ID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                var order = await _context.Orders.SingleOrDefaultAsync(m => m.OrderId == model.OrderId);
+
+                order.Price = model.Price;
+                order.Description = model.Description;
+                order.Status = model.Status;
+                Console.WriteLine("Website ID {0}", model.WebsiteId);
+                order.Website = await _context.Websites.SingleOrDefaultAsync(c => c.WebsiteId == model.WebsiteId);
+                Console.WriteLine("Website: {0}", order.Website.Domain);
+                _context.Update(order);
+                await _context.SaveChangesAsync();
             }
-            return View(order);
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!OrderExists(model.OrderId))
+                {
+                    return View("NotFound");
+                }
+
+                throw;
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Orders/Delete/5
@@ -124,33 +150,34 @@ namespace WebsitesProject.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                return View("NotFound");
             }
 
-            var order = await _context.Order
-                .SingleOrDefaultAsync(m => m.ID == id);
+            var order = await _context.Orders
+                .SingleOrDefaultAsync(m => m.OrderId == id);
             if (order == null)
             {
-                return NotFound();
+                return View("NotFound");
             }
 
-            return View(order);
+            var viewModel = _mapper.Map<DeleteOrderViewModel>(order);
+            return View(viewModel);
         }
 
         // POST: Orders/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(DeleteOrderViewModel model)
         {
-            var order = await _context.Order.SingleOrDefaultAsync(m => m.ID == id);
-            _context.Order.Remove(order);
+            var order = await _context.Orders.SingleOrDefaultAsync(m => m.OrderId == model.OrderId);
+            _context.Orders.Remove(order);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool OrderExists(int id)
         {
-            return _context.Order.Any(e => e.ID == id);
+            return _context.Orders.Any(e => e.OrderId == id);
         }
     }
 }

@@ -1,4 +1,7 @@
-﻿<h2>Your Websites</h2>
+﻿@{
+    ViewBag.Title = "Your websites"
+}
+<h2>@ViewBag.Title</h2>
 @{
     Html.RenderPartial("_ListingWebsites");
 }

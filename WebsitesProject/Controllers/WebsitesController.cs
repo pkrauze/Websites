@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebsitesProject.Models;
+using WebsitesProject.Models.WebsiteViewModels;
 
 namespace WebsitesProject.Controllers
 {
@@ -15,60 +17,77 @@ namespace WebsitesProject.Controllers
     {
         private readonly WebsitesContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly IMapper _mapper;
 
-
-        public WebsitesController(WebsitesContext context, UserManager<User> userManager)
+        public WebsitesController(WebsitesContext context, UserManager<User> userManager, IMapper mapper)
         {
             _context = context;
             _userManager = userManager;
+            _mapper = mapper;
         }
 
-        private Task<User> GetCurrentUserAsync() => _userManager.GetUserAsync(HttpContext.User);
-
-        [HttpGet]
-        public async Task<string> GetCurrentUserId()
+        private async Task<User> GetCurrentUser()
         {
-            User usr = await GetCurrentUserAsync();
-            return usr?.Id;
+            return await _userManager.GetUserAsync(User);
         }
 
         // GET: Websites
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Website.ToListAsync());
+            var websites = await _context.Websites
+                                         .OrderByDescending(m => m.CreatedAt)
+                                         .Select(m => _mapper.Map<WebsiteViewModel>(m))
+                                         .ToListAsync();
+            return View(websites);
         }
 
-        // GET: Websites/Details/5
+        // GET: Websites
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> UserWebsites()
+        {
+            var currentUser = await GetCurrentUser();
+            var websites = await _context.Websites
+                                         .Where(w => w.User == currentUser)
+                                         .Select(m => _mapper.Map<WebsiteViewModel>(m))
+                                         .ToListAsync();
+
+            return View(websites);
+        }
+
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                return View("NotFound");
             }
 
-            var website = await _context.Website
-                .SingleOrDefaultAsync(m => m.ID == id);
+
+            var website = await _context.Websites
+                                        .SingleOrDefaultAsync(m => m.WebsiteId == id);
             if (website == null)
             {
-                return NotFound();
+                return View("NotFound");
             }
 
-            return View(website);
-        }
-
-        // GET: Websites
-        public async Task<IActionResult> UserWebsites()
-        {
-            var currentUserId = await GetCurrentUserId();
-            return View(await _context.Website.Where(w => w.UserId == currentUserId).ToListAsync());
+            if (User.IsInRole("User") && !WebsiteOwner(website))
+            {
+                return View("AccessDenied");   
+            }
+            else
+            {
+                var viewModel = _mapper.Map<DetailsWebsiteViewModel>(website);
+                return View(viewModel);
+            }
         }
 
         // GET: Websites/Create
+        [Authorize(Roles = "Admin, User")]
         public IActionResult Create()
         {
-            ViewBag.OrderID = new SelectList(_context.Order, "ID", "Description");
-            return View();
+            var viewModel = new CreateWebsiteViewModel();
+            return View(viewModel);
         }
 
         // POST: Websites/Create
@@ -76,110 +95,153 @@ namespace WebsitesProject.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Domain,Description,CreatedAt,UserId")] Website website)
+        [Authorize(Roles = "Admin, User")]
+        public async Task<IActionResult> Create(CreateWebsiteViewModel model)
         {
-            var currentUserId = await GetCurrentUserId();
-            if (ModelState.IsValid && currentUserId != null)
+            if (!ModelState.IsValid)
             {
-                website.UserId = currentUserId;
-                _context.Add(website);
-                await _context.SaveChangesAsync();
-                if (User.IsInRole("Admin"))
-                {
-                    return RedirectToAction(nameof(Index));
-                }
-                else
-                {
-                    return RedirectToAction(nameof(UserWebsites));
-                }
+                return View(model);
             }
 
-            return View(website);
+            var website = new Website
+            {
+                Domain = model.Domain,
+                Description = model.Description,
+                CreatedAt = model.CreatedAt,
+                User = await GetCurrentUser()
+            };
+
+            _context.Add(website);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Websites/Edit/5
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                return View("NotFound");
             }
 
-            var website = await _context.Website.SingleOrDefaultAsync(m => m.ID == id);
+            var website = await _context.Websites.SingleOrDefaultAsync(m => m.WebsiteId == id);
             if (website == null)
             {
-                return NotFound();
+                return View("NotFound");
             }
-            return View(website);
+
+            if (User.IsInRole("User") && !WebsiteOwner(website))
+            {
+                return View("AccessDenied");
+            }
+            else
+            {
+                var viewModel = _mapper.Map<EditWebsiteViewModel>(website);
+                return View(viewModel);
+            }
         }
 
         // POST: Websites/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Domain,Description,CreatedAt")] Website website)
+        public async Task<IActionResult> Edit(EditWebsiteViewModel model)
         {
-            if (id != website.ID)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                return View(model);
             }
 
-            if (ModelState.IsValid)
+            try
             {
-                try
-                {
-                    _context.Update(website);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!WebsiteExists(website.ID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                var website = await _context.Websites.SingleOrDefaultAsync(m => m.WebsiteId == model.WebsiteId);
+                
+                website.Domain = model.Domain;
+                website.Description = model.Description;
+                website.CreatedAt = model.CreatedAt;
+
+                _context.Update(website);
+                await _context.SaveChangesAsync();
             }
-            return View(website);
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!WebsiteExists(model.WebsiteId))
+                {
+                    return View("NotFound");
+                }
+
+                throw;
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Websites/Delete/5
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                return View("NotFound");
             }
 
-            var website = await _context.Website
-                .SingleOrDefaultAsync(m => m.ID == id);
+            var website = await _context.Websites
+                .SingleOrDefaultAsync(m => m.WebsiteId == id);
             if (website == null)
             {
-                return NotFound();
+                return View("NotFound");
             }
 
-            return View(website);
+            if (User.IsInRole("User") && !WebsiteOwner(website))
+            {
+                return View("AccessDenied");
+            }
+            else
+            {
+                var viewModel = _mapper.Map<DeleteWebsiteViewModel>(website);
+                return View(viewModel);
+            }
         }
 
         // POST: Websites/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        [Authorize(Roles = "Admin, User")]
+        public async Task<IActionResult> DeleteConfirmed(DeleteWebsiteViewModel model)
         {
-            var website = await _context.Website.SingleOrDefaultAsync(m => m.ID == id);
-            _context.Website.Remove(website);
+            var website = await _context.Websites.SingleOrDefaultAsync(m => m.WebsiteId == model.WebsiteId);
+            _context.Websites.Remove(website);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool WebsiteExists(int id)
         {
-            return _context.Website.Any(e => e.ID == id);
+            return _context.Websites.Any(e => e.WebsiteId == id);
+        }
+
+        public IActionResult VerifyDomain(string domain, DateTime createdAt)
+        {
+            var website = from w in _context.Websites
+                          where w.Domain == domain && w.CreatedAt.Date.Equals(createdAt.Date)
+                          select w;
+            if (website != null)
+                return Json(data: "There is website with this domain and created at date in database!");
+            return Json(data: true);
+        }
+
+        [HttpGet]
+        public bool WebsiteOwner(Website website)
+        {
+            var currentUser = GetCurrentUser();
+            var websiteUser = website.User;
+            return websiteUser.Id.Equals(currentUser.Id);
+        }
+
+        [AcceptVerbs("Get", "Post")]
+        public async Task<IActionResult> Foo()
+        {
+            return Json(data: false);
         }
     }
 }

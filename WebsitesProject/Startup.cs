@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -10,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using WebsitesProject.Models;
 using WebsitesProject.Data;
+using Microsoft.AspNetCore.Localization;
 
 namespace WebsitesProject
 {
@@ -53,6 +55,11 @@ namespace WebsitesProject
                 options.User.RequireUniqueEmail = true;
             });
 
+            services.Configure<RequestLocalizationOptions>(options =>
+            {
+                options.DefaultRequestCulture = new RequestCulture("en-US");
+            });
+
             services.ConfigureApplicationCookie(options =>
             {
                 // Cookie settings
@@ -64,6 +71,8 @@ namespace WebsitesProject
                 options.SlidingExpiration = true;
             });
 
+            services.AddRouting(options => options.LowercaseUrls = true);
+            services.AddAutoMapper();
             services.AddMvc();
         }
 
@@ -83,7 +92,7 @@ namespace WebsitesProject
             app.UseAuthentication();
 
             app.UseMvc(routes =>
-            {
+            {                
                 routes.MapRoute(
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");

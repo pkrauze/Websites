@@ -42,7 +42,7 @@ namespace WebsitesProject.Data
                 }
             }
 
-            if (!_context.User.Any())
+            if (!_context.Users.Any())
             {
                 //Add admin account
                 var admin = new User { UserName = "admin@example.com", Email = "admin@example.com" };
