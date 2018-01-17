@@ -63,7 +63,6 @@ namespace WebsitesProject.Controllers
                 return View("NotFound");
             }
 
-
             var website = await _context.Websites
                                         .SingleOrDefaultAsync(m => m.WebsiteId == id);
             if (website == null)
@@ -82,7 +81,6 @@ namespace WebsitesProject.Controllers
             }
         }
 
-        // GET: Websites/Create
         [Authorize(Roles = "Admin, User")]
         public IActionResult Create()
         {
@@ -90,9 +88,6 @@ namespace WebsitesProject.Controllers
             return View(viewModel);
         }
 
-        // POST: Websites/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin, User")]
@@ -116,7 +111,6 @@ namespace WebsitesProject.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Websites/Edit/5
         [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -142,9 +136,9 @@ namespace WebsitesProject.Controllers
             }
         }
 
-        // POST: Websites/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Edit(EditWebsiteViewModel model)
         {
             if (!ModelState.IsValid)
@@ -176,7 +170,6 @@ namespace WebsitesProject.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Websites/Delete/5
         [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -203,7 +196,6 @@ namespace WebsitesProject.Controllers
             }
         }
 
-        // POST: Websites/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin, User")]
@@ -230,18 +222,11 @@ namespace WebsitesProject.Controllers
             return Json(data: true);
         }
 
-        [HttpGet]
-        public bool WebsiteOwner(Website website)
+        private bool WebsiteOwner(Website website)
         {
             var currentUser = GetCurrentUser();
             var websiteUser = website.User;
             return websiteUser.Id.Equals(currentUser.Id);
-        }
-
-        [AcceptVerbs("Get", "Post")]
-        public async Task<IActionResult> Foo()
-        {
-            return Json(data: false);
         }
     }
 }

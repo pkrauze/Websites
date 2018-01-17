@@ -24,7 +24,6 @@ namespace WebsitesProject.Controllers
             _mapper = mapper;
         }
 
-        // GET: Orders
         public async Task<IActionResult> Index()
         {
             var orders = await _context.Orders
@@ -34,7 +33,6 @@ namespace WebsitesProject.Controllers
             return View(orders);
         }
 
-        // GET: Orders/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if(id == null)
@@ -53,7 +51,6 @@ namespace WebsitesProject.Controllers
             return View(viewModel);
         }
 
-        // GET: Orders/Create
         public IActionResult Create()
         {
             var viewModel = new CreateOrderViewModel
@@ -63,9 +60,6 @@ namespace WebsitesProject.Controllers
             return View(viewModel);
         }
 
-        // POST: Orders/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateOrderViewModel model)
@@ -89,7 +83,6 @@ namespace WebsitesProject.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Orders/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -107,9 +100,6 @@ namespace WebsitesProject.Controllers
             return View(viewModel);
         }
 
-        // POST: Orders/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EditOrderViewModel model)
@@ -145,7 +135,6 @@ namespace WebsitesProject.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Orders/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -164,7 +153,6 @@ namespace WebsitesProject.Controllers
             return View(viewModel);
         }
 
-        // POST: Orders/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(DeleteOrderViewModel model)

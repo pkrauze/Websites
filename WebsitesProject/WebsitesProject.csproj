@@ -25,7 +25,6 @@
     <Folder Include="Views\Account\" />
     <Folder Include="Models\AccountViewModels\" />
     <Folder Include="Models\ApplicationRoleViewModels\" />
-    <Folder Include="Authorization\" />
     <Folder Include="Helpers\" />
     <Folder Include="Helpers\Validators\" />
     <Folder Include="Helpers\TagHelpers\" />
