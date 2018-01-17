@@ -32,4 +32,7 @@
     <Folder Include="Models\WebsiteViewModels\" />
     <Folder Include="Models\Mappings\" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Remove="Views\Manage\ChangePassword.cshtml" />
+  </ItemGroup>
 </Project>

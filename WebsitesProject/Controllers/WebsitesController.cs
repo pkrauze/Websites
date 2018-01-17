@@ -90,7 +90,6 @@ namespace WebsitesProject.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Create(CreateWebsiteViewModel model)
         {
             if (!ModelState.IsValid)
@@ -108,7 +107,15 @@ namespace WebsitesProject.Controllers
 
             _context.Add(website);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            if (User.IsInRole("Admin"))
+            {
+                return RedirectToAction(nameof(Index));
+
+            }
+            else
+            {
+                return RedirectToAction(nameof(UserWebsites));
+            }
         }
 
         [Authorize(Roles = "Admin, User")]
@@ -204,7 +211,15 @@ namespace WebsitesProject.Controllers
             var website = await _context.Websites.SingleOrDefaultAsync(m => m.WebsiteId == model.WebsiteId);
             _context.Websites.Remove(website);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            if (User.IsInRole("Admin"))
+            {
+                return RedirectToAction(nameof(Index));
+
+            }
+            else
+            {
+                return RedirectToAction(nameof(UserWebsites));
+            }
         }
 
         private bool WebsiteExists(int id)
